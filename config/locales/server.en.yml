@@ -1,0 +1,6 @@
+en:
+  site_settings:
+    textify_enabled: "Enable the Textify plugin for text-only topic views"
+    textify_rate_limit_per_hour: "Maximum text view requests per hour per user (0 to disable rate limiting)"
+    textify_show_button: "Show 'Text View' button on topics"
+    textify_allow_anonymous: "Allow anonymous users to access text view"

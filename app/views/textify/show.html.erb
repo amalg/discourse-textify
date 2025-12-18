@@ -1,0 +1,23 @@
+<a href="<%= @topic.relative_url %>" class="back-link">&larr; Back to full topic</a>
+
+<h1><%= @topic.title %></h1>
+
+<div class="topic-meta">
+  Category: <%= @topic.category&.name || "Uncategorized" %>
+  <span class="post-count">| <%= @posts_data.length %> posts</span>
+</div>
+
+<% @posts_data.each_with_index do |post, index| %>
+  <div class="post">
+    <div class="post-header">
+      <span class="post-author"><%= post[:author_name] %></span>
+      <span class="post-date">
+        &mdash; <%= post[:date].strftime("%B %d, %Y at %H:%M") %>
+      </span>
+    </div>
+    <div class="post-content"><%= post[:content] %></div>
+  </div>
+  <% unless index == @posts_data.length - 1 %>
+    <hr>
+  <% end %>
+<% end %>

@@ -1,0 +1,13 @@
+plugins:
+  textify_enabled:
+    default: true
+    client: true
+  textify_rate_limit_per_hour:
+    default: 60
+    min: 0
+    max: 1000
+  textify_show_button:
+    default: true
+    client: true
+  textify_allow_anonymous:
+    default: false

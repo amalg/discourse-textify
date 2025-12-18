@@ -1,0 +1,9 @@
+en:
+  js:
+    textify:
+      button_title: "Text View"
+      button_label: "View as plain text"
+      preferences:
+        title: "Text View"
+        auto_redirect: "Always open topics in text-only view"
+        auto_redirect_description: "When enabled, topics will automatically open in the simplified text-only format"

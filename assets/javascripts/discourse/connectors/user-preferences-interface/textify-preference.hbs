@@ -1,0 +1,15 @@
+<div class="control-group textify-preference">
+  <label class="control-label">{{i18n "textify.preferences.title"}}</label>
+  <div class="controls">
+    <label class="checkbox-label">
+      <Input
+        @type="checkbox"
+        @checked={{this.model.custom_fields.textify_auto_redirect}}
+      />
+      {{i18n "textify.preferences.auto_redirect"}}
+    </label>
+    <div class="instructions">
+      {{i18n "textify.preferences.auto_redirect_description"}}
+    </div>
+  </div>
+</div>
