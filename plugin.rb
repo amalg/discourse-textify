@@ -11,6 +11,10 @@ enabled_site_setting :textify_enabled
 
 register_asset "stylesheets/textify.scss"
 
+# Add plugin views to the view path BEFORE after_initialize
+PLUGIN_ROOT = File.dirname(__FILE__)
+Rails.application.config.paths["app/views"].unshift(File.join(PLUGIN_ROOT, "app/views"))
+
 after_initialize do
   # Register custom user field for auto-redirect preference
   User.register_custom_field_type("textify_auto_redirect", :boolean)

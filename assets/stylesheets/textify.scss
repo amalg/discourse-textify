@@ -1,21 +1,5 @@
 // Textify plugin styles
-
-.textify-button {
-  .d-button-label {
-    color: var(--primary-medium);
-  }
-
-  .d-icon {
-    color: var(--primary-medium);
-  }
-
-  &:hover {
-    .d-button-label,
-    .d-icon {
-      color: var(--primary);
-    }
-  }
-}
+// Match the styling of other topic footer buttons (Share, Bookmark, Flag, etc.)
 
 // User preferences styling
 .textify-preference {

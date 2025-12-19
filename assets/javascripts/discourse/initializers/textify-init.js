@@ -13,12 +13,13 @@ export default {
 
       // Add text view button to topic footer
       if (siteSettings.textify_show_button) {
-        api.addTopicFooterButton({
+        api.registerTopicFooterButton({
           id: "textify-button",
-          icon: "file-alt",
-          priority: 250,
+          icon: "file-lines",
+          priority: 240,
           title: "textify.button_label",
           label: "textify.button_title",
+          classNames: ["textify-button"],
           action() {
             const topic = this.topic;
             if (topic) {
@@ -26,10 +27,9 @@ export default {
               window.open(textUrl, "_blank");
             }
           },
-          dropdown() {
-            return this.site.mobileView;
+          displayed() {
+            return true;
           },
-          classNames: ["textify-button"],
         });
       }
 

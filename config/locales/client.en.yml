@@ -1,7 +1,7 @@
 en:
   js:
     textify:
-      button_title: "Text View"
+      button_title: "Textify"
       button_label: "View as plain text"
       preferences:
         title: "Text View"
