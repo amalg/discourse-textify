@@ -33,13 +33,13 @@ class TextifyController < ApplicationController
                  .order(:post_number)
                  .includes(:user)
 
-    # Strip content to text only
+    # Convert raw markdown to clean, portable markdown
     @posts_data = @posts.map do |post|
       {
         author: post.user&.username || "Unknown",
         author_name: post.user&.name || post.user&.username || "Unknown",
         date: post.created_at,
-        content: strip_to_text(post.cooked)
+        content: clean_markdown(post.raw)
       }
     end
 
@@ -58,61 +58,64 @@ class TextifyController < ApplicationController
     SiteSetting.textify_allow_anonymous
   end
 
-  def strip_to_text(html)
-    return "" if html.blank?
+  def clean_markdown(raw)
+    return "" if raw.blank?
 
-    doc = Nokogiri::HTML.fragment(html)
+    text = raw.dup
 
-    # Remove images
-    doc.css("img").remove
+    # Strip HTML anchor tags (e.g., <a name="anchor"></a>)
+    text = text.gsub(/<a\s+name=["'][^"']*["']\s*><\/a>/i, "")
 
-    # Remove videos and audio
-    doc.css("video, audio, source").remove
+    # Strip any other self-closing or empty anchor tags
+    text = text.gsub(/<a\s+[^>]*>\s*<\/a>/i, "")
 
-    # Remove embedded media (iframes, embeds, objects)
-    doc.css("iframe, embed, object").remove
+    # Convert HTML anchor links to just the text
+    # [Text](#anchor) → Text
+    text = text.gsub(/\[([^\]]+)\]\(#[^)]*\)/, '\1')
 
-    # Remove lightbox wrappers
-    doc.css(".lightbox-wrapper, .lightbox").remove
+    # Strip HTML entities that might appear in raw markdown
+    text = text.gsub(/&mdash;/, "—")
+    text = text.gsub(/&ndash;/, "–")
+    text = text.gsub(/&nbsp;/, " ")
+    text = text.gsub(/&amp;/, "&")
+    text = text.gsub(/&lt;/, "<")
+    text = text.gsub(/&gt;/, ">")
+    text = text.gsub(/&quot;/, '"')
 
-    # Remove file attachments
-    doc.css(".attachment, .onebox, .lazyYT").remove
+    # Convert Discourse quote blocks to standard markdown blockquotes
+    # [quote="username, post:1, topic:123"]content[/quote] → > content
+    text = text.gsub(/\[quote[^\]]*\]\s*/i, "")
+    text = text.gsub(/\[\/quote\]\s*/i, "\n")
 
-    # Remove quotes that reference other posts (optional - keep quote content)
-    doc.css("aside.quote .title").remove
+    # Handle nested quotes by prefixing lines within quote context
+    # This is a simplified approach - just removes the tags
 
-    # Remove like/reaction elements if any exist in content
-    doc.css(".reactions, .likes, .post-links").remove
+    # Strip Discourse upload references (they won't resolve externally)
+    # ![image|600x400](upload://xyz123) → [Image removed]
+    text = text.gsub(/!\[[^\]]*\]\(upload:\/\/[^)]+\)/, "[Image]")
 
-    # Remove any inline link previews / oneboxes
-    doc.css(".onebox-body, .onebox-metadata").remove
+    # Strip other Discourse-specific upload syntax
+    # ![image](#{Discourse.base_url}/uploads/...) - keep if absolute URL
+    # But upload:// scheme won't work externally
 
-    # Convert links to text with URL in parentheses
-    doc.css("a").each do |link|
-      href = link["href"]
-      text = link.text.strip
+    # Convert relative URLs to absolute URLs
+    base_url = Discourse.base_url
+    # [text](/t/slug/123) → [text](https://forum.example.com/t/slug/123)
+    text = text.gsub(/\]\(\/([^)]+)\)/, "](#{base_url}/\\1)")
 
-      if href.present? && text.present? && text != href
-        # Show both text and URL: "link text (https://example.com)"
-        link.replace("#{text} (#{href})")
-      elsif href.present?
-        # Link text is same as URL, just show once
-        link.replace(href)
-      else
-        # No href, just show text
-        link.replace(text)
-      end
-    end
+    # Strip Discourse-specific BBCode that might remain
+    text = text.gsub(/\[details=[^\]]*\]\s*/i, "")
+    text = text.gsub(/\[\/details\]\s*/i, "\n")
+    text = text.gsub(/\[poll[^\]]*\].*?\[\/poll\]/mi, "[Poll removed]")
 
-    # Get text content, normalize whitespace
-    text = doc.text
+    # Convert :emoji: to unicode where possible, or leave as-is
+    # This is optional - leaving as-is for now since most editors handle :emoji:
 
-    # Clean up excessive whitespace while preserving paragraph breaks
+    # Normalize whitespace
     text = text.gsub(/\r\n?/, "\n")           # Normalize line endings
-    text = text.gsub(/[ \t]+/, " ")            # Collapse horizontal whitespace
-    text = text.gsub(/\n[ \t]+/, "\n")         # Remove leading whitespace on lines
-    text = text.gsub(/[ \t]+\n/, "\n")         # Remove trailing whitespace on lines
-    text = text.gsub(/\n{3,}/, "\n\n")         # Max 2 consecutive newlines
+    text = text.gsub(/[ \t]+$/, "")           # Remove trailing whitespace on lines
+    text = text.gsub(/^\s+$/, "")             # Remove whitespace-only lines
+    text = text.gsub(/\n{3,}/, "\n\n")        # Max 2 consecutive newlines
     text = text.strip
 
     text
