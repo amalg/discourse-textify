@@ -10,7 +10,7 @@
 <% @posts_data.each_with_index do |post, index| %>
   <div class="post">
     <div class="post-header">
-      <span class="post-author"><%= post[:author_name] %></span>
+      <span class="post-author"><%= post[:author] %></span>
       <span class="post-date">
         &mdash; <%= post[:date].strftime("%B %d, %Y at %H:%M") %>
       </span>

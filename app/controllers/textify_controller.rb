@@ -73,6 +73,10 @@ class TextifyController < ApplicationController
     # [Text](#anchor) → Text
     text = text.gsub(/\[([^\]]+)\]\(#[^)]*\)/, '\1')
 
+    # Strip Discourse heading anchors: [](#p-123-heading-text)Heading Text → Heading Text
+    # These appear before headings in raw markdown
+    text = text.gsub(/\[\]\(#p-\d+-[^)]*\)/, '')
+
     # Strip HTML entities that might appear in raw markdown
     text = text.gsub(/&mdash;/, "—")
     text = text.gsub(/&ndash;/, "–")
