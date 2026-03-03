@@ -40,7 +40,7 @@ class TextifyController < ApplicationController
         author_name: post.user&.name || post.user&.username || "Unknown",
         date: post.created_at,
         post_number: post.post_number,
-        content: clean_markdown(post.raw)
+        content: format_for_html(clean_markdown(post.raw))
       }
     end
 
@@ -57,6 +57,25 @@ class TextifyController < ApplicationController
 
   def allow_anonymous?
     SiteSetting.textify_allow_anonymous
+  end
+
+  def format_for_html(text)
+    return "" if text.blank?
+
+    # HTML-escape all content first for safety
+    escaped = ERB::Util.html_escape(text)
+
+    # Convert [quote="..."] tags: make post:N a clickable anchor link
+    # After escaping, double quotes become &quot;
+    escaped = escaped.gsub(/\[quote=&quot;(.+?)&quot;\]/i) do
+      inner = $1
+      linked_inner = inner.gsub(/post:(\d+)/) do
+        "<a href=\"##{$1}\" class=\"quote-post-link\">post:#{$1}</a>"
+      end
+      "[quote=&quot;#{linked_inner}&quot;]"
+    end
+
+    escaped
   end
 
   def clean_markdown(raw)
@@ -87,13 +106,7 @@ class TextifyController < ApplicationController
     text = text.gsub(/&gt;/, ">")
     text = text.gsub(/&quot;/, '"')
 
-    # Convert Discourse quote blocks to standard markdown blockquotes
-    # [quote="username, post:1, topic:123"]content[/quote] → > content
-    text = text.gsub(/\[quote[^\]]*\]\s*/i, "")
-    text = text.gsub(/\[\/quote\]\s*/i, "\n")
-
-    # Handle nested quotes by prefixing lines within quote context
-    # This is a simplified approach - just removes the tags
+    # Preserve [quote] and [/quote] tags as-is (formatted in format_for_html)
 
     # Strip Discourse upload references (they won't resolve externally)
     # ![image|600x400](upload://xyz123) → [Image removed]
