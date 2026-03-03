@@ -14,6 +14,7 @@
       <span class="post-date">
         &mdash; <%= post[:date].strftime("%B %d, %Y at %H:%M") %>
       </span>
+      <a href="<%= @topic.relative_url %>/<%= post[:post_number] %>" class="post-link">[link]</a>
     </div>
     <div class="post-content"><%= post[:content] %></div>
   </div>

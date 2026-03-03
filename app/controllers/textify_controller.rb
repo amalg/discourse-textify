@@ -39,6 +39,7 @@ class TextifyController < ApplicationController
         author: post.user&.username || "Unknown",
         author_name: post.user&.name || post.user&.username || "Unknown",
         date: post.created_at,
+        post_number: post.post_number,
         content: clean_markdown(post.raw)
       }
     end
