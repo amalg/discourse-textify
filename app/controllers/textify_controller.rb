@@ -16,11 +16,16 @@ class TextifyController < ApplicationController
     guardian.ensure_can_see!(@topic)
 
     # Rate limiting (similar to print view)
+    # RateLimiter's first argument must be a User or nil; it derives the redis
+    # key from user.id. For anonymous requests there is no user, so we pass nil
+    # and scope the limit by IP through the key instead. Passing the IP String
+    # as the "user" would crash RateLimiter#build_key (String has no #id).
     if SiteSetting.textify_rate_limit_per_hour > 0 && !guardian.is_admin?
-      rate_limit_key = current_user ? current_user : request.remote_ip
+      rate_limit_key =
+        current_user ? "textify-topic-per-hour" : "textify-topic-per-hour-#{request.remote_ip}"
       RateLimiter.new(
+        current_user,
         rate_limit_key,
-        "textify-topic-per-hour",
         SiteSetting.textify_rate_limit_per_hour,
         1.hour
       ).performed!
